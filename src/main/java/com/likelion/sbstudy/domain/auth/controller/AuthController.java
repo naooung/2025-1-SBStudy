@@ -6,6 +6,7 @@ import com.likelion.sbstudy.domain.auth.service.AuthService;
 import com.likelion.sbstudy.domain.user.exception.UserErrorCode;
 import com.likelion.sbstudy.domain.user.repository.UserRepository;
 import com.likelion.sbstudy.global.exception.CustomException;
+import com.likelion.sbstudy.global.jwt.JwtProvider;
 import com.likelion.sbstudy.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,7 @@ public class AuthController {
 
   private final AuthService authService;
   private final UserRepository userRepository;
+  private final JwtProvider jwtProvider;
 
   @Operation(summary = "사용자 로그인", description = "사용자 로그인을 위한 API")
   @PostMapping("/login")
@@ -39,7 +41,7 @@ public class AuthController {
         .orElseThrow(() -> new CustomException(UserErrorCode.USER_NOT_FOUND))
         .getRefreshToken();
 
-    // Set-Cookie 설정 (HttpOnly + Secure)
+    /*
     Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
     refreshTokenCookie.setHttpOnly(true);
     // refreshTokenCookie.setSecure(true);  // HTTPS일 때만
@@ -47,7 +49,11 @@ public class AuthController {
     refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);  // 예: 7일
 
     response.addCookie(refreshTokenCookie);
+    */
+    // Set-Cookie 설정 (HttpOnly + Secure)
+    jwtProvider.addJwtToCookie(response, refreshToken, "refreshToken", 60 * 60 * 24 * 7);
 
     return ResponseEntity.ok(BaseResponse.success("로그인에 성공했습니다.", loginResponse));
   }
+
 }

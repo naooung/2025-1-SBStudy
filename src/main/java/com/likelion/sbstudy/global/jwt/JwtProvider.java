@@ -9,6 +9,8 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.security.Key;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
@@ -27,17 +29,24 @@ public class JwtProvider {
       @Value("${spring.jwt.secret}") String secretKey,
       @Value("${spring.jwt.access-token-expire-time}") long accessTokenExpireTime,
       @Value("${spring.jwt.refresh-token-expire-time}") long refreshTokenExpireTime) {
+
     byte[] keyBytes = java.util.Base64.getDecoder().decode(secretKey);
     this.key = Keys.hmacShaKeyFor(keyBytes);
     this.accessTokenExpireTime = accessTokenExpireTime;
     this.refreshTokenExpireTime = refreshTokenExpireTime;
   }
 
-  public String createAccessToken(String username) {
+  public String createAccessToken(String username, String role, String provider) {
     Date now = new Date();
-    return Jwts.builder()
+
+    Claims claims = Jwts.claims()
         .setSubject(username)
-        .setId(String.valueOf(username))
+        .setId(username); // tokenId 대용
+    claims.put("roles", role);         // ex: ["ROLE_USER"]
+    claims.put("provider", provider);   // ex: "google"
+
+    return Jwts.builder()
+        .setClaims(claims)
         .setIssuedAt(now)
         .setExpiration(new Date(now.getTime() + accessTokenExpireTime))
         .signWith(key, SignatureAlgorithm.HS256)
@@ -98,6 +107,15 @@ public class JwtProvider {
         .build()
         .parseClaimsJws(token)
         .getBody();
+  }
+
+  public void addJwtToCookie(HttpServletResponse response, String token, String name, long maxAge) {
+    Cookie cookie = new Cookie(name, token);
+    cookie.setHttpOnly(true);
+    //cookie.setSecure(true); // HTTPS 환경에서만 전송되게
+    cookie.setPath("/");
+    cookie.setMaxAge((int) maxAge / 1000); // 단위: 초
+    response.addCookie(cookie);
   }
 }
 

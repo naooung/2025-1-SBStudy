@@ -31,12 +31,16 @@ public class User extends BaseTimeEntity {
   @Column(name = "username", nullable = false, unique = true)
   private String username;
 
-  @Column(name = "nickname", nullable = false, unique = true)
+  @Column(name = "nickname", unique = true)
   private String nickname;
 
   @JsonIgnore
-  @Column(name = "password", nullable = false)
+  @Column(name = "password")
   private String password;
+
+  @JsonIgnore
+  @Column(name = "provider", nullable = false)
+  private String provider;
 
   @JsonIgnore
   @Column(name = "refresh_token") // 초기에 NULL
@@ -49,5 +53,13 @@ public class User extends BaseTimeEntity {
 
   public void createRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
+  }
+
+  public static User fromOAuth(String email, String provider) {
+    return User.builder()
+        .username(email)
+        .provider(provider)
+        .role(Role.USER)
+        .build();
   }
 }

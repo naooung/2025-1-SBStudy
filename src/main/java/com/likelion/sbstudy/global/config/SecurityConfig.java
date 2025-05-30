@@ -1,6 +1,8 @@
 package com.likelion.sbstudy.global.config;
 
+import com.likelion.sbstudy.global.security.CustomOAuth2UserService;
 import com.likelion.sbstudy.global.security.JwtAuthenticationFilter;
+import com.likelion.sbstudy.global.security.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +30,8 @@ public class SecurityConfig {
 
   private final CorsConfig corsConfig;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final CustomOAuth2UserService oauth2UserService;
+  private final OAuth2LoginSuccessHandler customSuccessHandler;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -54,7 +58,14 @@ public class SecurityConfig {
                     // 그 외 모든 요청은 모두 인증 필요
                     .anyRequest()
                     .authenticated())
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+        .oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(oauth2UserService) // 사용자 정보 처리
+            )
+            .successHandler(customSuccessHandler) // 로그인 성공 처리
+        );
     return http.build();
   }
 

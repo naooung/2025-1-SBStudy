@@ -39,9 +39,10 @@ public class AuthService {
     authenticationManager.authenticate(authenticationToken);
 
     // 액세스 토큰 및 리프레시 토큰 발급
-    String accessToken = jwtProvider.createAccessToken(user.getUsername());
-    String refreshToken = jwtProvider.createRefreshToken(user.getUsername(),
-        UUID.randomUUID().toString());
+    String accessToken = jwtProvider.createAccessToken
+        (user.getUsername(), user.getRole().toString(), "custom");
+    String refreshToken = jwtProvider.createRefreshToken
+        (user.getUsername(), UUID.randomUUID().toString());
 
     // 리프레시 토큰 저장
     user.createRefreshToken(refreshToken);
