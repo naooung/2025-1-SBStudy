@@ -42,12 +42,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
       default -> throw new OAuth2AuthenticationException("Unknown provider: " + provider);
     }
 
-    User user = userRepository.findByUsername(email)
-        .orElseThrow(() -> new CustomException(UserErrorCode.USER_EXIST));
+    if (userRepository.findByUsername(email).isPresent()) {
+      throw new CustomException(UserErrorCode.USER_EXIST); // "이미 존재하는 회원입니다."
+    }
 
-    user = userRepository.findByUsername(email)
-        .orElseGet(() -> userRepository.save(
-            User.fromOAuth(email, provider)));
+    User user = userRepository.save(User.fromOAuth(email, provider));
 
     String nameAttributeKey = switch (provider) {
       case "google" -> "email";
