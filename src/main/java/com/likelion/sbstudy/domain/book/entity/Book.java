@@ -1,21 +1,26 @@
 package com.likelion.sbstudy.domain.book.entity;
 
 import com.likelion.sbstudy.global.common.BaseTimeEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "book")
 public class Book extends BaseTimeEntity {
@@ -24,19 +29,31 @@ public class Book extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
-  private String isbn;
-
-  @Column(nullable = false)
+  @Column(name = "title", nullable = false)
   private String title;
 
-  @Column(nullable = false)
+  @Column(name = "author", nullable = false)
   private String author;
 
-  @Column(nullable = false)
+  @Column(name = "publisher", nullable = false)
   private String publisher;
 
-  private Long price;
+  @Column(name = "price", nullable = false)
+  private Integer price;
 
-  private String content;
+  @Column(name = "description", nullable = false)
+  private String description;
+
+  @Column(name = "release_date", nullable = false)
+  private String releaseDate;
+
+  @Column(name = "category_list", nullable = false)
+  private List<Category> categoryList;
+
+  @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<BookImage> bookImages = new ArrayList<>();
+
+  public void addBookImages(List<BookImage> bookImages) {
+    this.bookImages = bookImages;
+  }
 }
